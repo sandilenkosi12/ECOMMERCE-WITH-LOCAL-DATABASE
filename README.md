@@ -1,4 +1,4 @@
-![SQL DATA](https://github.com/user-attachments/assets/41e189cc-8c6a-4277-8b92-8ef3c8600fef)# ECOMMERCE-WITH-LOCAL-DATABASE
+# ECOMMERCE-WITH-LOCAL-DATABASE
 foodstore/
 │
 ├── index.php          # Homepage with featured items
@@ -18,12 +18,21 @@ foodstore/
 ![1](https://github.com/user-attachments/assets/ec61ef50-e041-424d-ae67-f34db5c26da2)
 
 ![SharedScreenshot](https://github.com/user-attachments/assets/18aa5ae4-6b1f-43cb-aaae-1df609f99d1b)
+
+
 Browse South African food menu
 View item details with images
 Add items to shopping cart
 Update cart quantities
 
+
+
 ![SharedScreenshot](https://github.com/user-attachments/assets/e0f46227-f09d-4055-8681-09674470b2dd)
+
+
+
+![log in](https://github.com/user-attachments/assets/b1e914b3-7666-45ce-aff6-b14a28de73ce)
+
 User registration and login
 Place orders with delivery
 Order confirmation
