@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | TradeVault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .navbar { background: #0a0a0a; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #FFB81C; }
+        .accent { color: #FFB81C; }
+        .product-detail { padding: 60px 0; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+        .detail-image img { width: 100%; border-radius: 20px; }
+        .detail-info h1 { font-size: 2rem; margin-bottom: 20px; }
+        .price { font-size: 1.8rem; color: #FFB81C; font-weight: 700; margin: 20px 0; }
+        .btn-primary { background: #FFB81C; color: #1a1a2e; padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .quantity { display: flex; align-items: center; gap: 15px; margin: 20px 0; }
+        .quantity input { width: 80px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; }
+        @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar"><div class="container"><div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div><a href="index.html" style="color:white">← Back to Store</a></div></nav>
+    <div class="container product-detail"><div class="detail-grid" id="productDetail"></div></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const products = JSON.parse(localStorage.getItem('tradevault_products')) || [];
+        const product = products.find(p => p.id == productId);
+        
+        function addToCart() {
+            let user = JSON.parse(localStorage.getItem('tradevault_current_user'));
+            if (!user) { alert('Please login first'); window.location.href = 'index.html'; return; }
+            let cart = JSON.parse(localStorage.getItem('tradevault_cart')) || [];
+            const qty = parseInt(document.getElementById('quantity').value);
+            const existing = cart.find(c => c.userId === user.id && c.productId === product.id);
+            if (existing) existing.quantity += qty;
+            else cart.push({ userId: user.id, productId: product.id, quantity: qty });
+            localStorage.setItem('tradevault_cart', JSON.stringify(cart));
+            alert(`Added ${qty} x ${product.name} to cart!`);
+        }
+        
+        if (product) {
+            document.getElementById('productDetail').innerHTML = `
+                <div class="detail-image"><img src="${product.image}" alt="${product.name}"></div>
+                <div class="detail-info"><h1>${product.name}</h1><p>${product.description || 'Premium wholesale product for business buyers.'}</p><div class="price">R${product.price} / unit</div><div class="quantity"><label>Quantity (MOQ: ${product.moq})</label><input type="number" id="quantity" value="${product.moq}" min="${product.moq}" step="${product.moq}"></div><button class="btn-primary" onclick="addToCart()"><i class="fas fa-shopping-cart"></i> Add to Cart - Bulk Order</button></div>
+            `;
+        } else document.getElementById('productDetail').innerHTML = '<p>Product not found</p>';
+    </script>
+</body>
+</html>

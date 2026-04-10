@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | TradeVault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .navbar { background: #0a0a0a; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #FFB81C; }
+        .accent { color: #FFB81C; }
+        .checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
+        .cart-items { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; }
+        .cart-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cart-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .payment-form { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; }
+        .btn-primary { background: #FFB81C; color: #1a1a2e; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-weight: 600; font-size: 1rem; }
+        .total-row { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .empty-cart { text-align: center; padding: 60px; color: #94a3b8; }
+        .product-info { display: flex; gap: 15px; align-items: center; }
+        @media (max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div>
+            <a href="index.html" style="color:white">← Continue Shopping</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Checkout</h1>
+        <div class="checkout-grid">
+            <div class="cart-items" id="cartItems"></div>
+            <div class="payment-form">
+                <h3>Payment Details</h3>
+                <form id="paymentForm">
+                    <div class="form-group"><input type="text" placeholder="Full Name" required id="buyerName"></div>
+                    <div class="form-group"><input type="email" placeholder="Email Address" required id="buyerEmail"></div>
+                    <div class="form-group"><input type="text" placeholder="Card Number" required></div>
+                    <div class="form-group"><input type="text" placeholder="MM/YY" required></div>
+                    <div class="form-group"><input type="text" placeholder="CVC" required></div>
+                    <div class="form-group"><input type="text" placeholder="Shipping Address" required></div>
+                    <div id="checkoutTotal" class="total-row"><span>Total:</span><span>R0.00</span></div>
+                    <button type="submit" class="btn-primary">Place Bulk Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('tradevault_current_user'));
+        if (!currentUser) window.location.href = 'index.html';
+        
+        let products = JSON.parse(localStorage.getItem('tradevault_products')) || [];
+        let cart = JSON.parse(localStorage.getItem('tradevault_cart')) || [];
+        let orders = JSON.parse(localStorage.getItem('tradevault_orders')) || [];
+        
+        function saveOrders() { localStorage.setItem('tradevault_orders', JSON.stringify(orders)); }
+        function saveCart() { localStorage.setItem('tradevault_cart', JSON.stringify(cart)); }
+        
+        function loadCart() {
+            const userCart = cart.filter(c => c.userId === currentUser.id);
+            if (userCart.length === 0) {
+                document.getElementById('cartItems').innerHTML = '<div class="empty-cart"><i class="fas fa-shopping-cart" style="font-size:3rem"></i><p>Your cart is empty</p><a href="index.html" class="btn-primary" style="display:inline-block;margin-top:20px;width:auto">Browse Products</a></div>';
+                return;
+            }
+            
+            let cartHtml = '';
+            let total = 0;
+            userCart.forEach(c => {
+                const product = products.find(p => p.id === c.productId);
+                if (product) {
+                    const itemTotal = product.price * c.quantity;
+                    total += itemTotal;
+                    cartHtml += `
+                        <div class="cart-item">
+                            <div class="product-info">
+                                <img src="${product.image}" onerror="this.src='https://placehold.co/300x300/FFB81C/1a1a2e?text=Product'">
+                                <div><strong>${product.name}</strong><br>Qty: ${c.quantity} × R${product.price}</div>
+                            </div>
+                            <div>R${itemTotal.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+            });
+            cartHtml += `<div class="total-row"><span>Subtotal</span><span>R${total.toFixed(2)}</span></div>`;
+            document.getElementById('cartItems').innerHTML = cartHtml;
+            document.querySelector('#checkoutTotal span:last-child').textContent = `R${total.toFixed(2)}`;
+            window.currentTotal = total;
+            window.currentCart = userCart;
+        }
+        
+        document.getElementById('paymentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const buyerName = document.getElementById('buyerName').value || currentUser.name;
+            const buyerEmail = document.getElementById('buyerEmail').value || currentUser.email;
+            
+            // Create order for each product in cart
+            for (const cartItem of window.currentCart) {
+                const product = products.find(p => p.id === cartItem.productId);
+                if (product) {
+                    const order = {
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        userId: currentUser.id,
+                        buyerName: buyerName,
+                        buyerEmail: buyerEmail,
+                        supplierId: product.supplierId,
+                        productId: product.id,
+                        productName: product.name,
+                        quantity: cartItem.quantity,
+                        total: product.price * cartItem.quantity,
+                        status: 'Processing',
+                        date: new Date().toISOString()
+                    };
+                    orders.push(order);
+                }
+            }
+            
+            // Clear cart for this user
+            cart = cart.filter(c => c.userId !== currentUser.id);
+            saveCart();
+            saveOrders();
+            
+            alert(`✅ Order placed successfully!\n\nOrder total: R${window.currentTotal.toFixed(2)}\nYou will receive email confirmation shortly.\n\nYour order has been sent to the supplier.`);
+            window.location.href = 'index.html';
+        });
+        
+        loadCart();
+    </script>
+</body>
+</html>

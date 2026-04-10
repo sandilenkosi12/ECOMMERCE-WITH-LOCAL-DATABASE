@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeVault | B2B Wholesale Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        .accent { color: #FFB81C; }
+        
+        /* Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes glow { 0% { box-shadow: 0 0 5px rgba(255,184,28,0.3); } 100% { box-shadow: 0 0 20px rgba(255,184,28,0.6); } }
+        
+        /* Navigation */
+        .navbar { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); position: fixed; top: 0; width: 100%; z-index: 1000; padding: 15px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); animation: slideIn 0.5s ease; }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #FFB81C; animation: pulse 2s infinite; }
+        .nav-links { display: flex; align-items: center; gap: 30px; }
+        .nav-links a { color: #fff; text-decoration: none; transition: color 0.3s; position: relative; }
+        .nav-links a:hover { color: #FFB81C; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: #FFB81C; transition: width 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
+        .cart-btn { position: relative; background: rgba(255, 184, 28, 0.15); padding: 8px 12px; border-radius: 8px; }
+        .cart-btn span { position: absolute; top: -8px; right: -8px; background: #E03C31; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
+        .btn-primary { background: linear-gradient(135deg, #FFB81C, #E03C31); color: #fff; padding: 12px 28px; border-radius: 30px; text-decoration: none; font-weight: 600; border: none; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,184,28,0.4); }
+        .btn-outline { background: transparent; border: 1px solid #FFB81C; color: #FFB81C; padding: 12px 28px; border-radius: 30px; cursor: pointer; transition: all 0.3s; }
+        .btn-outline:hover { background: #FFB81C; color: #1a1a2e; }
+        .user-menu { display: flex; align-items: center; gap: 15px; }
+        
+        /* Hero Section */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; position: relative; overflow: hidden; }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 50%, rgba(255,184,28,0.1), transparent 50%); pointer-events: none; }
+        .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .hero-content { animation: fadeInUp 0.8s ease; }
+        .hero-badge { display: inline-block; background: rgba(255, 184, 28, 0.15); padding: 6px 12px; border-radius: 30px; font-size: 0.8rem; margin-bottom: 20px; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; line-height: 1.2; }
+        .hero p { color: #94a3b8; margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; }
+        .hero-stats { display: flex; gap: 30px; margin-bottom: 30px; }
+        .hero-stats .stat span { display: block; font-size: 1.5rem; font-weight: 700; color: #FFB81C; }
+        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+        .hero-image { position: relative; animation: float 3s ease-in-out infinite; }
+        .floating-card { position: absolute; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255, 184, 28, 0.3); animation: float 3s ease-in-out infinite; }
+        .card-1 { top: 20%; left: -20px; animation-delay: 0s; }
+        .card-2 { bottom: 30%; right: -20px; animation-delay: 1s; }
+        .card-3 { bottom: 10%; left: 10%; animation-delay: 2s; }
+        
+        /* Products Section */
+        .products-section { padding: 80px 0; }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-header h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        .filters-bar { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
+        .filter-group select, .search-box { padding: 12px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; color: #fff; cursor: pointer; }
+        .search-box { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px; }
+        .search-box input { background: none; border: none; color: #fff; flex: 1; outline: none; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .product-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; overflow: hidden; transition: all 0.3s; border: 1px solid rgba(255, 255, 255, 0.05); animation: fadeInUp 0.5s ease; cursor: pointer; }
+        .product-card:hover { transform: translateY(-5px); border-color: rgba(255, 184, 28, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .product-image { height: 200px; overflow: hidden; position: relative; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .product-card:hover .product-image img { transform: scale(1.05); }
+        .product-badge { position: absolute; top: 10px; left: 10px; background: #FFB81C; color: #1a1a2e; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+        .product-info { padding: 20px; }
+        .product-info h3 { margin-bottom: 10px; font-size: 1.1rem; }
+        .product-price { color: #FFB81C; font-weight: 700; font-size: 1.2rem; margin-bottom: 15px; }
+        .product-actions { display: flex; gap: 10px; }
+        .btn-view, .btn-cart { padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        .btn-view { background: transparent; border: 1px solid #FFB81C; color: #FFB81C; }
+        .btn-view:hover { background: #FFB81C; color: #1a1a2e; }
+        .btn-cart { background: #FFB81C; border: none; color: #1a1a2e; font-weight: 600; }
+        .btn-cart:hover { background: #E03C31; color: #fff; }
+        
+        /* Footer */
+        .footer { background: #050505; padding: 60px 0 30px; margin-top: 60px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-bottom: 40px; }
+        .footer-col h4 { margin-bottom: 20px; color: #FFB81C; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 10px; }
+        .footer-col a { color: #94a3b8; text-decoration: none; transition: color 0.3s; }
+        .footer-col a:hover { color: #FFB81C; }
+        .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.05); color: #64748b; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; animation: fadeInUp 0.3s ease; }
+        .modal-content { background: #1a1a2e; border-radius: 16px; width: 90%; max-width: 450px; }
+        .modal-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; }
+        .modal-body { padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; }
+        .full-width { width: 100%; }
+        .close-modal { background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+        
+        /* Toast Notification */
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; z-index: 2000; animation: fadeInUp 0.3s ease; display: none; }
+        
+        @media (max-width: 768px) {
+            .hero .container { grid-template-columns: 1fr; text-align: center; }
+            .hero-stats { justify-content: center; }
+            .hero-buttons { justify-content: center; }
+            .filters-bar { flex-direction: column; align-items: stretch; }
+            .footer-grid { grid-template-columns: 1fr; text-align: center; }
+            .nav-links { display: none; }
+            .floating-card { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#products">Products</a>
+                <a href="#suppliers">Suppliers</a>
+                <a href="#" id="adminLink" style="display: none;">Admin Panel</a>
+                <a href="#" id="supplierLink" style="display: none;">Supplier Dashboard</a>
+                <a href="#" id="cartBtn" class="cart-btn"><i class="fas fa-shopping-cart"></i><span id="cartCount">0</span></a>
+                <div class="auth-buttons"><button class="btn-outline" id="loginBtn">Login</button><button class="btn-primary" id="registerBtn">Register</button></div>
+                <div class="user-menu" id="userMenu" style="display: none;"><span id="userName"></span><button class="btn-outline" id="logoutBtn">Logout</button></div>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" style="background:none;border:none;color:white;font-size:1.5rem;display:none;"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">⚡ B2B Wholesale Platform</div>
+                <h1>Bulk Sourcing Made <span class="accent">Simple</span></h1>
+                <p>Connect with verified suppliers, access tiered pricing, and streamline your procurement process. Trusted by businesses across South Africa and beyond.</p>
+                <div class="hero-stats"><div class="stat"><span>500+</span> Suppliers</div><div class="stat"><span>10,000+</span> Products</div><div class="stat"><span>98%</span> Satisfaction</div></div>
+                <div class="hero-buttons"><a href="#products" class="btn-primary">Start Sourcing <i class="fas fa-arrow-right"></i></a><a href="#suppliers" class="btn-outline">Become a Supplier</a></div>
+            </div>
+            <div class="hero-image">
+                <div class="floating-card card-1"><i class="fas fa-truck"></i><span>Bulk Shipping</span></div>
+                <div class="floating-card card-2"><i class="fas fa-shield-alt"></i><span>Verified Suppliers</span></div>
+                <div class="floating-card card-3"><i class="fas fa-chart-line"></i><span>Volume Discounts</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="products" class="products-section">
+        <div class="container">
+            <div class="section-header"><h2>Bulk <span class="accent">Products</span></h2><p>Discover wholesale items with tiered pricing</p></div>
+            <div class="filters-bar">
+                <div class="filter-group"><select id="categoryFilter"><option value="all">All Categories</option><option value="electronics">Electronics</option><option value="clothing">Clothing</option><option value="food">Food</option><option value="home">Home</option></select></div>
+                <div class="filter-group"><select id="moqFilter"><option value="0">Any MOQ</option><option value="10">10+ units</option><option value="50">50+ units</option><option value="100">100+ units</option></select></div>
+                <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search products..."></div>
+            </div>
+            <div class="product-grid" id="productGrid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col"><div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div><p>B2B wholesale marketplace connecting verified suppliers with business buyers.</p></div>
+                <div class="footer-col"><h4>Buyers</h4><ul><li><a href="#products">Browse Products</a></li><li><a href="#">How to Buy</a></li><li><a href="#">Bulk Order Guide</a></li></ul></div>
+                <div class="footer-col"><h4>Suppliers</h4><ul><li><a href="#">Sell on TradeVault</a></li><li><a href="#">Supplier Dashboard</a></li><li><a href="#">Pricing & Fees</a></li></ul></div>
+                <div class="footer-col"><h4>Support</h4><ul><li><a href="#">Help Center</a></li><li><a href="#">Procurement Guide</a></li><li><a href="#">Contact Us</a></li></ul></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2025 TradeVault. All rights reserved. B2B Wholesale Marketplace.</p></div>
+        </div>
+    </footer>
+
+    <div class="modal" id="authModal"><div class="modal-content"><div class="modal-header"><h3 id="authModalTitle">Login</h3><button class="close-modal" id="closeAuthModal">&times;</button></div><div class="modal-body"><form id="authForm"><div class="form-group"><label>Email</label><input type="email" id="authEmail" required></div><div class="form-group"><label>Password</label><input type="password" id="authPassword" required></div><div class="form-group" id="nameGroup" style="display: none;"><label>Full Name</label><input type="text" id="authName"></div><div class="form-group" id="roleGroup" style="display: none;"><label>Account Type</label><select id="authRole"><option value="buyer">Buyer</option><option value="supplier">Supplier</option></select></div><button type="submit" class="btn-primary full-width" id="authSubmitBtn">Login</button></form></div></div></div>
+    
+    <div class="toast" id="toast">✅ Added to cart!</div>
+
+    <script>
+        // ============ DATABASE ============
+        let db = {
+            users: JSON.parse(localStorage.getItem('tradevault_users')) || [
+                { id: 1, name: 'Admin User', email: 'admin@tradevault.com', password: 'admin123', role: 'admin' },
+                { id: 2, name: 'Tech Supplier', email: 'supplier@tradevault.com', password: 'supplier123', role: 'supplier', company: 'Tech Wholesale SA' },
+                { id: 3, name: 'John Buyer', email: 'buyer@tradevault.com', password: 'buyer123', role: 'buyer' }
+            ],
+            products: JSON.parse(localStorage.getItem('tradevault_products')) || [
+                { id: 1, name: 'Wireless Headphones', category: 'electronics', price: 450, moq: 10, description: 'High-quality wireless headphones', image: 'https://placehold.co/300x300/FFB81C/1a1a2e?text=Headphones', supplierId: 2 },
+                { id: 2, name: 'Bulk T-Shirts', category: 'clothing', price: 120, moq: 50, description: 'Cotton t-shirts', image: 'https://placehold.co/300x300/FFB81C/1a1a2e?text=T-Shirts', supplierId: 2 },
+                { id: 3, name: 'Coffee Beans', category: 'food', price: 280, moq: 20, description: 'Premium coffee beans', image: 'https://placehold.co/300x300/FFB81C/1a1a2e?text=Coffee', supplierId: 2 }
+            ],
+            cart: JSON.parse(localStorage.getItem('tradevault_cart')) || [],
+            orders: JSON.parse(localStorage.getItem('tradevault_orders')) || []
+        };
+        
+        function saveDB() {
+            localStorage.setItem('tradevault_users', JSON.stringify(db.users));
+            localStorage.setItem('tradevault_products', JSON.stringify(db.products));
+            localStorage.setItem('tradevault_cart', JSON.stringify(db.cart));
+            localStorage.setItem('tradevault_orders', JSON.stringify(db.orders));
+        }
+        
+        // ============ APP STATE ============
+        let currentUser = JSON.parse(localStorage.getItem('tradevault_current_user')) || null;
+        let currentProductPage = 0;
+        const productsPerPage = 9;
+        
+        // ============ HELPER FUNCTIONS ============
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+        
+        function updateCartCount() {
+            const cartCount = document.getElementById('cartCount');
+            if (currentUser) {
+                const userCart = db.cart.filter(c => c.userId === currentUser.id);
+                const count = userCart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = count;
+            } else cartCount.textContent = '0';
+        }
+        
+        // ============ PRODUCT FUNCTIONS ============
+        function getFilteredProducts() {
+            let products = [...db.products];
+            const category = document.getElementById('categoryFilter')?.value;
+            const moq = parseInt(document.getElementById('moqFilter')?.value || 0);
+            const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            
+            if (category && category !== 'all') products = products.filter(p => p.category === category);
+            if (moq > 0) products = products.filter(p => p.moq <= moq);
+            if (search) products = products.filter(p => p.name.toLowerCase().includes(search));
+            return products;
+        }
+        
+        function renderProducts() {
+            const products = getFilteredProducts();
+            const start = 0;
+            const end = productsPerPage;
+            const pageProducts = products.slice(start, end);
+            const grid = document.getElementById('productGrid');
+            if (!grid) return;
+            
+            if (pageProducts.length === 0) {
+                grid.innerHTML = '<div style="text-align:center;padding:60px;color:#94a3b8">No products found</div>';
+                return;
+            }
+            
+            grid.innerHTML = pageProducts.map(product => `
+                <div class="product-card">
+                    <div class="product-image"><img src="${product.image}" alt="${product.name}"><div class="product-badge">MOQ: ${product.moq}+</div></div>
+                    <div class="product-info"><h3>${product.name}</h3><p class="product-price">From R${product.price}</p><div class="product-actions"><button class="btn-view" onclick="viewProduct(${product.id})">View</button><button class="btn-cart" onclick="addToCart(${product.id})"><i class="fas fa-shopping-cart"></i> Add</button></div></div>
+                </div>
+            `).join('');
+        }
+        
+        function viewProduct(id) { window.location.href = `product.html?id=${id}`; }
+        
+        function addToCart(productId) {
+            if (!currentUser) { showToast('Please login first'); showAuthModal('login'); return; }
+            const existing = db.cart.find(c => c.userId === currentUser.id && c.productId === productId);
+            if (existing) existing.quantity += 1;
+            else db.cart.push({ userId: currentUser.id, productId, quantity: 1 });
+            saveDB();
+            updateCartCount();
+            showToast('✓ Added to cart!');
+        }
+        
+        // ============ AUTH FUNCTIONS ============
+        function showAuthModal(mode) {
+            document.getElementById('authModalTitle').textContent = mode === 'login' ? 'Login' : 'Register';
+            document.getElementById('nameGroup').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('roleGroup').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Login' : 'Register';
+            window.authMode = mode;
+            document.getElementById('authModal').classList.add('active');
+        }
+        
+        function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if (window.authMode === 'login') {
+                const user = db.users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    currentUser = user;
+                    localStorage.setItem('tradevault_current_user', JSON.stringify(user));
+                    document.getElementById('authModal').classList.remove('active');
+                    updateUIForUser();
+                    showToast(`Welcome back, ${user.name}!`);
+                    renderProducts();
+                } else showToast('Invalid credentials');
+            } else {
+                const name = document.getElementById('authName').value;
+                const role = document.getElementById('authRole').value;
+                if (db.users.find(u => u.email === email)) showToast('Email already exists');
+                else {
+                    const newUser = { id: Date.now(), name, email, password, role };
+                    db.users.push(newUser);
+                    saveDB();
+                    currentUser = newUser;
+                    localStorage.setItem('tradevault_current_user', JSON.stringify(newUser));
+                    document.getElementById('authModal').classList.remove('active');
+                    updateUIForUser();
+                    showToast(`Account created! Welcome ${name}`);
+                    renderProducts();
+                }
+            }
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('tradevault_current_user');
+            updateUIForUser();
+            showToast('Logged out');
+            renderProducts();
+        }
+        
+        function updateUIForUser() {
+            const authDiv = document.querySelector('.auth-buttons');
+            const userMenu = document.getElementById('userMenu');
+            const userName = document.getElementById('userName');
+            const adminLink = document.getElementById('adminLink');
+            const supplierLink = document.getElementById('supplierLink');
+            
+            if (currentUser) {
+                if (authDiv) authDiv.style.display = 'none';
+                if (userMenu) userMenu.style.display = 'flex';
+                if (userName) userName.textContent = currentUser.name;
+                if (adminLink && currentUser.role === 'admin') adminLink.style.display = 'block';
+                if (supplierLink && currentUser.role === 'supplier') supplierLink.style.display = 'block';
+            } else {
+                if (authDiv) authDiv.style.display = 'flex';
+                if (userMenu) userMenu.style.display = 'none';
+                if (adminLink) adminLink.style.display = 'none';
+                if (supplierLink) supplierLink.style.display = 'none';
+            }
+            updateCartCount();
+        }
+        
+        // ============ EVENT LISTENERS ============
+        function init() {
+            renderProducts();
+            updateUIForUser();
+            
+            document.getElementById('loginBtn')?.addEventListener('click', () => showAuthModal('login'));
+            document.getElementById('registerBtn')?.addEventListener('click', () => showAuthModal('register'));
+            document.getElementById('logoutBtn')?.addEventListener('click', logout);
+            document.getElementById('closeAuthModal')?.addEventListener('click', () => document.getElementById('authModal').classList.remove('active'));
+            document.getElementById('authForm')?.addEventListener('submit', handleAuth);
+            document.getElementById('categoryFilter')?.addEventListener('change', () => renderProducts());
+            document.getElementById('moqFilter')?.addEventListener('change', () => renderProducts());
+            document.getElementById('searchInput')?.addEventListener('input', () => renderProducts());
+            document.getElementById('cartBtn')?.addEventListener('click', () => { if (currentUser) window.location.href = 'checkout.html'; else showToast('Please login first'); });
+            document.getElementById('adminLink')?.addEventListener('click', (e) => { e.preventDefault(); if (currentUser?.role === 'admin') window.location.href = 'admin.html'; });
+            document.getElementById('supplierLink')?.addEventListener('click', (e) => { e.preventDefault(); if (currentUser?.role === 'supplier') window.location.href = 'supplier.html'; else showToast('Supplier access only'); });
+            
+            window.addToCart = addToCart;
+            window.viewProduct = viewProduct;
+        }
+        
+        init();
+    </script>
+</body>
+</html>

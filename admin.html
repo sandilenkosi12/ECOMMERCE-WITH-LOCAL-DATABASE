@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeVault | Admin Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .navbar { background: #0a0a0a; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #FFB81C; }
+        .accent { color: #FFB81C; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; }
+        .stat-card i { font-size: 2rem; color: #FFB81C; }
+        .stat-card h3 { font-size: 1.8rem; }
+        .charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; }
+        .chart-card h3 { margin-bottom: 20px; color: #FFB81C; }
+        .chart-container { position: relative; height: 300px; }
+        .data-table { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { color: #FFB81C; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: #FFB81C; color: #1a1a2e; }
+        .btn-danger { background: #E03C31; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar"><div class="container"><div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div><a href="index.html" style="color:white">← Back to Store</a></div></nav>
+    <div class="container">
+        <h1>Admin Analytics Dashboard</h1>
+        <div class="tabs"><div class="tab active" data-tab="dashboard">📊 Dashboard</div><div class="tab" data-tab="products">📦 Products</div><div class="tab" data-tab="users">👥 Users</div><div class="tab" data-tab="orders">📋 Orders</div></div>
+        
+        <div id="dashboardTab">
+            <div class="stats-grid"><div class="stat-card"><i class="fas fa-box"></i><h3 id="totalProducts">0</h3><p>Products</p></div><div class="stat-card"><i class="fas fa-users"></i><h3 id="totalUsers">0</h3><p>Users</p></div><div class="stat-card"><i class="fas fa-store"></i><h3 id="totalSuppliers">0</h3><p>Suppliers</p></div><div class="stat-card"><i class="fas fa-shopping-cart"></i><h3 id="totalOrders">0</h3><p>Orders</p><div id="totalRevenue" style="font-size:0.9rem;color:#FFB81C">Revenue: R0</div></div></div>
+            <div class="charts-row"><div class="chart-card"><h3>Revenue by Month</h3><div class="chart-container"><canvas id="revenueChart"></canvas></div></div><div class="chart-card"><h3>User Growth</h3><div class="chart-container"><canvas id="userGrowthChart"></canvas></div></div></div>
+            <div class="charts-row"><div class="chart-card"><h3>Orders by Category</h3><div class="chart-container"><canvas id="categoryOrdersChart"></canvas></div></div><div class="chart-card"><h3>Top Suppliers</h3><div class="chart-container"><canvas id="topSuppliersChart"></canvas></div></div></div>
+        </div>
+        
+        <div id="productsTab" style="display: none;"><div class="data-table"><table id="productsTable"><thead><tr><th>ID</th><th>Name</th><th>Supplier</th><th>Price</th><th>MOQ</th><th>Sales</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+        <div id="usersTab" style="display: none;"><div class="data-table"><table id="usersTable"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+        <div id="ordersTab" style="display: none;"><div class="data-table"><table id="ordersTable"><thead><tr><th>Order ID</th><th>Buyer</th><th>Supplier</th><th>Product</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+    <script>
+        let revenueChart, userGrowthChart, categoryOrdersChart, topSuppliersChart;
+        let products = JSON.parse(localStorage.getItem('tradevault_products')) || [];
+        let users = JSON.parse(localStorage.getItem('tradevault_users')) || [];
+        let orders = JSON.parse(localStorage.getItem('tradevault_orders')) || [];
+        
+        function loadStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('totalSuppliers').textContent = users.filter(u => u.role === 'supplier').length;
+            document.getElementById('totalOrders').textContent = orders.length;
+            const totalRev = orders.reduce((s,o) => s + o.total, 0);
+            document.getElementById('totalRevenue').innerHTML = `Revenue: R${totalRev.toFixed(2)}`;
+        }
+        
+        function initCharts() {
+            const monthlyRevenue = new Array(12).fill(0);
+            orders.forEach(o => { const month = new Date(o.date).getMonth(); monthlyRevenue[month] += o.total; });
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(revenueCtx, { type: 'line', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [{ label: 'Revenue (R)', data: monthlyRevenue, borderColor: '#FFB81C', backgroundColor: 'rgba(255,184,28,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } } });
+            
+            const monthlyUsers = [45, 52, 58, 67, 78, 89, 102, 118, 135, 156, 178, 205];
+            const userCtx = document.getElementById('userGrowthChart').getContext('2d');
+            if (userGrowthChart) userGrowthChart.destroy();
+            userGrowthChart = new Chart(userCtx, { type: 'bar', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], datasets: [{ label: 'Total Users', data: monthlyUsers, backgroundColor: '#10b981', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } } });
+            
+            const categoryData = { Electronics: 0, Clothing: 0, Food: 0, Home: 0 };
+            products.forEach(p => { categoryData[p.category] = (categoryData[p.category] || 0) + (p.sales || 0); });
+            const catCtx = document.getElementById('categoryOrdersChart').getContext('2d');
+            if (categoryOrdersChart) categoryOrdersChart.destroy();
+            categoryOrdersChart = new Chart(catCtx, { type: 'pie', data: { labels: Object.keys(categoryData), datasets: [{ data: Object.values(categoryData), backgroundColor: ['#FFB81C', '#E03C31', '#10b981', '#3b82f6'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } } });
+            
+            const supplierSales = {};
+            orders.forEach(o => { supplierSales[o.supplierId] = (supplierSales[o.supplierId] || 0) + o.total; });
+            const topSuppliers = Object.entries(supplierSales).sort((a,b) => b[1] - a[1]).slice(0,5);
+            const supplierNames = topSuppliers.map(s => { const u = users.find(u => u.id == s[0]); return u?.company || u?.name || `Supplier ${s[0]}`; });
+            const supCtx = document.getElementById('topSuppliersChart').getContext('2d');
+            if (topSuppliersChart) topSuppliersChart.destroy();
+            topSuppliersChart = new Chart(supCtx, { type: 'bar', data: { labels: supplierNames, datasets: [{ label: 'Sales (R)', data: topSuppliers.map(s => s[1]), backgroundColor: '#FFB81C', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } } });
+        }
+        
+        function loadProductsTable() { document.querySelector('#productsTable tbody').innerHTML = products.map(p => `<tr><td>${p.id}</td><td>${p.name}</td><td>Supplier ${p.supplierId}</td><td>R${p.price}</td><td>${p.moq}+</td><td>${p.sales||0}</td><td><button class="btn-danger" onclick="deleteProduct(${p.id})">Delete</button></td>`).join(''); }
+        function loadUsersTable() { document.querySelector('#usersTable tbody').innerHTML = users.map(u => `<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${new Date().toLocaleDateString()}</td><td>${u.role !== 'admin' ? `<button class="btn-danger" onclick="deleteUser(${u.id})">Delete</button>` : '-'}</td>`).join(''); }
+        function loadOrdersTable() { document.querySelector('#ordersTable tbody').innerHTML = orders.map(o => `<tr><td>#${o.id}</td><td>${o.buyerName}</td><td>Supplier ${o.supplierId}</td><td>${o.productName}</td><td>R${o.total}</td><td>${o.status}</td><td>${new Date(o.date).toLocaleDateString()}</td>`).join(''); }
+        
+        function deleteProduct(id) { products = products.filter(p => p.id !== id); localStorage.setItem('tradevault_products', JSON.stringify(products)); loadProductsTable(); loadStats(); initCharts(); }
+        function deleteUser(id) { users = users.filter(u => u.id !== id); localStorage.setItem('tradevault_users', JSON.stringify(users)); loadUsersTable(); loadStats(); initCharts(); }
+        
+        document.querySelectorAll('.tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); const tabName = tab.dataset.tab; document.getElementById('dashboardTab').style.display = tabName === 'dashboard' ? 'block' : 'none'; document.getElementById('productsTab').style.display = tabName === 'products' ? 'block' : 'none'; document.getElementById('usersTab').style.display = tabName === 'users' ? 'block' : 'none'; document.getElementById('ordersTab').style.display = tabName === 'orders' ? 'block' : 'none'; if (tabName === 'dashboard') { loadStats(); initCharts(); } }); });
+        loadStats(); initCharts(); loadProductsTable(); loadUsersTable(); loadOrdersTable();
+        window.deleteProduct = deleteProduct; window.deleteUser = deleteUser;
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeVault | Supplier Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .navbar { background: #0a0a0a; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo i { color: #FFB81C; }
+        .accent { color: #FFB81C; }
+        .btn-primary { background: #FFB81C; color: #1a1a2e; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-danger { background: #E03C31; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-edit { background: #FFB81C; color: #1a1a2e; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; transition: transform 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); }
+        .stat-card i { font-size: 2rem; color: #FFB81C; }
+        .stat-card h3 { font-size: 1.8rem; margin-top: 10px; }
+        .charts-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .chart-card h3 { margin-bottom: 20px; font-size: 1.1rem; color: #FFB81C; }
+        .chart-container { position: relative; height: 300px; }
+        .products-table, .orders-table { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { color: #FFB81C; }
+        .product-form { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; margin-top: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .tab.active { background: #FFB81C; color: #1a1a2e; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+        .status-processing { background: #FFB81C; color: #1a1a2e; }
+        .status-shipped { background: #10b981; color: white; }
+        .status-delivered { background: #3b82f6; color: white; }
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #10b981; padding: 12px 24px; border-radius: 8px; display: none; z-index: 1000; }
+        .product-image-small { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .revenue-trend { display: flex; align-items: baseline; gap: 5px; margin-top: 10px; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #E03C31; }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><i class="fas fa-vault"></i><span>Trade<span class="accent">Vault</span></span></div>
+            <a href="index.html" style="color:white">← Back to Store</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Supplier Analytics Dashboard</h1>
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard">📊 Dashboard</div>
+            <div class="tab" data-tab="products">📦 My Products</div>
+            <div class="tab" data-tab="orders">📋 Orders Received</div>
+            <div class="tab" data-tab="pricing">💰 Pricing & Fees</div>
+        </div>
+        
+        <!-- Dashboard Tab with Charts -->
+        <div id="dashboardTab">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-box"></i><h3 id="totalProducts">0</h3><p>Total Products</p></div>
+                <div class="stat-card"><i class="fas fa-shopping-cart"></i><h3 id="totalOrders">0</h3><p>Orders Received</p></div>
+                <div class="stat-card"><i class="fas fa-truck"></i><h3 id="totalRevenue">R0</h3><p>Total Revenue</p><div class="revenue-trend"><span id="revenueTrend" class="trend-up">↑ 12%</span><span style="color:#64748b;font-size:0.7rem"> vs last month</span></div></div>
+                <div class="stat-card"><i class="fas fa-users"></i><h3 id="totalBuyers">0</h3><p>Unique Buyers</p></div>
+            </div>
+            
+            <!-- Charts Row 1 -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Sales by Product Category</h3>
+                    <div class="chart-container"><canvas id="categoryPieChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-line"></i> Monthly Revenue Trend</h3>
+                    <div class="chart-container"><canvas id="revenueLineChart"></canvas></div>
+                </div>
+            </div>
+            
+            <!-- Charts Row 2 -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-bar"></i> Top Selling Products</h3>
+                    <div class="chart-container"><canvas id="topProductsBarChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-simple"></i> Order Status Distribution</h3>
+                    <div class="chart-container"><canvas id="orderStatusDoughnutChart"></canvas></div>
+                </div>
+            </div>
+            
+            <!-- Charts Row 3 - Performance Metrics -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3><i class="fas fa-calendar-week"></i> Weekly Orders</h3>
+                    <div class="chart-container"><canvas id="weeklyOrdersChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-scatter"></i> Average Order Value</h3>
+                    <div class="chart-container"><canvas id="avgOrderValueChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Tab -->
+        <div id="productsTab" style="display: none;">
+            <button class="btn-primary" id="showAddBtn">+ Add New Product</button>
+            <div id="productForm" class="product-form" style="display: none;">
+                <h3>Add/Edit Product</h3>
+                <input type="hidden" id="productId">
+                <div class="form-row">
+                    <div class="form-group"><label>Product Name</label><input type="text" id="productName" placeholder="e.g., Wireless Headphones"></div>
+                    <div class="form-group"><label>Category</label><select id="productCategory"><option value="electronics">Electronics</option><option value="clothing">Clothing</option><option value="food">Food</option><option value="home">Home</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Price (R)</label><input type="number" id="productPrice" placeholder="0.00"></div>
+                    <div class="form-group"><label>Minimum Order (MOQ)</label><input type="number" id="productMOQ" placeholder="10"></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="productDesc" rows="2"></textarea></div>
+                <div class="form-group"><label>Image URL</label><input type="text" id="productImage" placeholder="https://..."></div>
+                <button class="btn-primary" id="saveProductBtn">Save Product</button>
+            </div>
+            <div class="products-table">
+                <table id="productsTable">
+                    <thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>MOQ</th><th>Sales</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Orders Tab -->
+        <div id="ordersTab" style="display: none;">
+            <div class="orders-table">
+                <table id="ordersTable">
+                    <thead><tr><th>Order ID</th><th>Buyer</th><th>Email</th><th>Product</th><th>Qty</th><th>Total</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pricing Tab -->
+        <div id="pricingTab" style="display: none;">
+            <div class="products-table">
+                <h3>Commission Structure</h3>
+                <table>
+                    <thead><tr><th>Category</th><th>Commission</th><th>Platform Fee</th><th>Payment Fee</th></tr></thead>
+                    <tbody>
+                        <tr><td>Electronics</td><td>5%</td><td>R50</td><td>2.9% + R2</td></tr>
+                        <tr><td>Clothing</td><td>4%</td><td>R30</td><td>2.9% + R2</td></tr>
+                        <tr><td>Food</td><td>3%</td><td>R20</td><td>2.9% + R2</td></tr>
+                        <tr><td>Home</td><td>4%</td><td>R40</td><td>2.9% + R2</td></tr>
+                    </tbody>
+                </table>
+                <br>
+                <h3>Your Earnings Summary</h3>
+                <table id="earningsTable">
+                    <thead><tr><th>Period</th><th>Sales</th><th>Commission</th><th>Fees</th><th>Your Earnings</th></tr></thead>
+                    <tbody>
+                        <tr><td>This Month</td><td id="monthSales">R0</td><td id="monthCommission">R0</td><td id="monthFees">R0</td><td id="monthEarnings">R0</td></tr>
+                        <tr><td>Total</td><td id="totalSales">R0</td><td id="totalCommission">R0</td><td id="totalFees">R0</td><td id="totalEarnings">R0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">✅ Saved!</div>
+
+    <script>
+        // Charts instances
+        let categoryPieChart, revenueLineChart, topProductsBarChart, orderStatusDoughnutChart, weeklyOrdersChart, avgOrderValueChart;
+        
+        let currentSupplier = JSON.parse(localStorage.getItem('tradevault_current_user'));
+        if (!currentSupplier || currentSupplier.role !== 'supplier') window.location.href = 'index.html';
+        
+        let products = JSON.parse(localStorage.getItem('tradevault_products')) || [];
+        let orders = JSON.parse(localStorage.getItem('tradevault_orders')) || [];
+        let users = JSON.parse(localStorage.getItem('tradevault_users')) || [];
+        
+        if (products.length === 0) {
+            products = [
+                { id: 1, name: 'Wireless Headphones', category: 'electronics', price: 450, moq: 10, description: 'Premium wireless headphones', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop', supplierId: currentSupplier.id, sales: 145 },
+                { id: 2, name: 'Bulk T-Shirts', category: 'clothing', price: 120, moq: 50, description: 'Cotton t-shirts', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=300&fit=crop', supplierId: currentSupplier.id, sales: 320 },
+                { id: 3, name: 'Coffee Beans', category: 'food', price: 280, moq: 20, description: 'Premium coffee', image: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=300&h=300&fit=crop', supplierId: currentSupplier.id, sales: 89 }
+            ];
+            localStorage.setItem('tradevault_products', JSON.stringify(products));
+        }
+        
+        if (orders.length === 0) {
+            const buyer = users.find(u => u.role === 'buyer');
+            for (let i = 1; i <= 12; i++) {
+                const month = new Date(2025, i-1, 15);
+                orders.push({
+                    id: 1000 + i, userId: buyer?.id || 3, buyerName: buyer?.name || 'John Buyer', buyerEmail: buyer?.email || 'buyer@tradevault.com',
+                    supplierId: currentSupplier.id, productId: [1,2,3][i%3], productName: ['Wireless Headphones', 'Bulk T-Shirts', 'Coffee Beans'][i%3],
+                    quantity: 20 + i * 5, total: 5000 + i * 800, status: ['Processing', 'Shipped', 'Delivered'][i%3], date: month.toISOString()
+                });
+            }
+            localStorage.setItem('tradevault_orders', JSON.stringify(orders));
+        }
+        
+        function getMyProducts() { return products.filter(p => p.supplierId === currentSupplier.id); }
+        function getMyOrders() { return orders.filter(o => o.supplierId === currentSupplier.id); }
+        
+        // Initialize all charts
+        function initCharts() {
+            const myOrders = getMyOrders();
+            const myProducts = getMyProducts();
+            
+            // 1. Category Pie Chart - Sales by category
+            const categorySales = {};
+            myProducts.forEach(p => { categorySales[p.category] = (categorySales[p.category] || 0) + (p.sales || 0); });
+            const categoryCtx = document.getElementById('categoryPieChart').getContext('2d');
+            if (categoryPieChart) categoryPieChart.destroy();
+            categoryPieChart = new Chart(categoryCtx, {
+                type: 'pie',
+                data: { labels: Object.keys(categorySales), datasets: [{ data: Object.values(categorySales), backgroundColor: ['#FFB81C', '#E03C31', '#10b981', '#3b82f6', '#8b5cf6'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+            });
+            
+            // 2. Revenue Line Chart - Monthly revenue
+            const monthlyRevenue = new Array(12).fill(0);
+            myOrders.forEach(o => { const month = new Date(o.date).getMonth(); monthlyRevenue[month] += o.total; });
+            const revenueCtx = document.getElementById('revenueLineChart').getContext('2d');
+            if (revenueLineChart) revenueLineChart.destroy();
+            revenueLineChart = new Chart(revenueCtx, {
+                type: 'line', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], datasets: [{ label: 'Revenue (R)', data: monthlyRevenue, borderColor: '#FFB81C', backgroundColor: 'rgba(255,184,28,0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+            
+            // 3. Top Products Bar Chart
+            const topProducts = myProducts.sort((a,b) => (b.sales||0) - (a.sales||0)).slice(0,5);
+            const barCtx = document.getElementById('topProductsBarChart').getContext('2d');
+            if (topProductsBarChart) topProductsBarChart.destroy();
+            topProductsBarChart = new Chart(barCtx, {
+                type: 'bar', data: { labels: topProducts.map(p => p.name), datasets: [{ label: 'Units Sold', data: topProducts.map(p => p.sales || 0), backgroundColor: '#FFB81C', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+            
+            // 4. Order Status Doughnut Chart
+            const statusCount = { Processing: 0, Shipped: 0, Delivered: 0 };
+            myOrders.forEach(o => { statusCount[o.status] = (statusCount[o.status] || 0) + 1; });
+            const doughnutCtx = document.getElementById('orderStatusDoughnutChart').getContext('2d');
+            if (orderStatusDoughnutChart) orderStatusDoughnutChart.destroy();
+            orderStatusDoughnutChart = new Chart(doughnutCtx, {
+                type: 'doughnut', data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ['#FFB81C', '#10b981', '#3b82f6'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+            });
+            
+            // 5. Weekly Orders Bar Chart
+            const weeklyOrders = [12, 18, 25, 22, 30, 28, 35];
+            const weeklyCtx = document.getElementById('weeklyOrdersChart').getContext('2d');
+            if (weeklyOrdersChart) weeklyOrdersChart.destroy();
+            weeklyOrdersChart = new Chart(weeklyCtx, {
+                type: 'bar', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Orders', data: weeklyOrders, backgroundColor: '#10b981', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+            
+            // 6. Average Order Value Trend
+            const avgOrderValues = [1250, 1380, 1520, 1680, 1850, 2100];
+            const avgCtx = document.getElementById('avgOrderValueChart').getContext('2d');
+            if (avgOrderValueChart) avgOrderValueChart.destroy();
+            avgOrderValueChart = new Chart(avgCtx, {
+                type: 'line', data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'], datasets: [{ label: 'Avg Order Value (R)', data: avgOrderValues, borderColor: '#E03C31', backgroundColor: 'rgba(224,60,49,0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+        
+        function loadStats() {
+            const myProducts = getMyProducts();
+            const myOrders = getMyOrders();
+            const uniqueBuyers = [...new Set(myOrders.map(o => o.userId))];
+            const revenue = myOrders.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('totalProducts').textContent = myProducts.length;
+            document.getElementById('totalOrders').textContent = myOrders.length;
+            document.getElementById('totalRevenue').textContent = `R${revenue.toFixed(2)}`;
+            document.getElementById('totalBuyers').textContent = uniqueBuyers.length;
+            initCharts();
+        }
+        
+        function loadProductsTable() {
+            const myProducts = getMyProducts();
+            const tbody = document.querySelector('#productsTable tbody');
+            tbody.innerHTML = myProducts.map(p => `<tr><td><img src="${p.image}" class="product-image-small" onerror="this.src='https://placehold.co/300x300/FFB81C/1a1a2e?text=Product'"></td><td><strong>${p.name}</strong><br><small>${p.description?.substring(0, 50) || ''}</small></td><td>${p.category}</td><td style="color:#FFB81C">R${p.price}</td><td>${p.moq}+</td><td>${p.sales || 0} units</td><td><button class="btn-edit" onclick="editProduct(${p.id})">Edit</button><button class="btn-danger" onclick="deleteProduct(${p.id})">Delete</button></td></tr>`).join('');
+        }
+        
+        function loadOrdersTable() {
+            const myOrders = getMyOrders();
+            const tbody = document.querySelector('#ordersTable tbody');
+            if (myOrders.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px">No orders yet</td></tr>'; return; }
+            tbody.innerHTML = myOrders.map(o => `<tr><td><strong>#${o.id}</strong></td><td><i class="fas fa-user"></i> ${o.buyerName}</td><td><i class="fas fa-envelope"></i> ${o.buyerEmail}</td><td><strong>${o.productName}</strong></td><td>${o.quantity} units</td><td style="color:#FFB81C;font-weight:bold">R${o.total.toFixed(2)}</td><td>${new Date(o.date).toLocaleDateString()}</td><td><span class="status-badge status-${o.status.toLowerCase()}">${o.status}</span></td><td><button class="btn-edit" onclick="updateOrderStatus(${o.id}, 'Shipped')">Ship</button></td></tr>`).join('');
+        }
+        
+        function updateOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) { order.status = newStatus; localStorage.setItem('tradevault_orders', JSON.stringify(orders)); loadOrdersTable(); loadStats(); showToast(`Order #${orderId} marked as ${newStatus}`); }
+        }
+        
+        function loadPricing() {
+            const myOrders = getMyOrders();
+            const totalSales = myOrders.reduce((sum, o) => sum + o.total, 0);
+            const totalCommission = totalSales * 0.04;
+            const totalFees = myOrders.length * 30;
+            document.getElementById('totalSales').textContent = `R${totalSales.toFixed(2)}`;
+            document.getElementById('totalCommission').textContent = `R${totalCommission.toFixed(2)}`;
+            document.getElementById('totalFees').textContent = `R${totalFees.toFixed(2)}`;
+            document.getElementById('totalEarnings').textContent = `R${(totalSales - totalCommission - totalFees).toFixed(2)}`;
+            const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
+            const monthOrders = myOrders.filter(o => new Date(o.date) > monthAgo);
+            const monthSales = monthOrders.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('monthSales').textContent = `R${monthSales.toFixed(2)}`;
+            document.getElementById('monthCommission').textContent = `R${(monthSales * 0.04).toFixed(2)}`;
+            document.getElementById('monthFees').textContent = `R${(monthOrders.length * 30).toFixed(2)}`;
+            document.getElementById('monthEarnings').textContent = `R${(monthSales - monthSales * 0.04 - monthOrders.length * 30).toFixed(2)}`;
+        }
+        
+        function editProduct(id) { const p = products.find(p => p.id === id); if (p) { document.getElementById('productId').value = p.id; document.getElementById('productName').value = p.name; document.getElementById('productCategory').value = p.category; document.getElementById('productPrice').value = p.price; document.getElementById('productMOQ').value = p.moq; document.getElementById('productDesc').value = p.description; document.getElementById('productImage').value = p.image; document.getElementById('productForm').style.display = 'block'; } }
+        function deleteProduct(id) { if (confirm('Delete?')) { products = products.filter(p => p.id !== id); localStorage.setItem('tradevault_products', JSON.stringify(products)); loadProductsTable(); loadStats(); showToast('Product deleted'); } }
+        function saveProduct() {
+            const id = document.getElementById('productId').value;
+            const productData = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value, category: document.getElementById('productCategory').value, price: parseFloat(document.getElementById('productPrice').value), moq: parseInt(document.getElementById('productMOQ').value), description: document.getElementById('productDesc').value, image: document.getElementById('productImage').value || 'https://placehold.co/300x300/FFB81C/1a1a2e?text=Product', supplierId: currentSupplier.id, sales: 0 };
+            if (id) { const index = products.findIndex(p => p.id == id); if (index !== -1) products[index] = productData; } else products.push(productData);
+            localStorage.setItem('tradevault_products', JSON.stringify(products));
+            document.getElementById('productForm').style.display = 'none';
+            loadProductsTable(); loadStats(); showToast(id ? 'Product updated' : 'Product added');
+        }
+        
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', 2000); }
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const tabName = tab.dataset.tab;
+                document.getElementById('dashboardTab').style.display = tabName === 'dashboard' ? 'block' : 'none';
+                document.getElementById('productsTab').style.display = tabName === 'products' ? 'block' : 'none';
+                document.getElementById('ordersTab').style.display = tabName === 'orders' ? 'block' : 'none';
+                document.getElementById('pricingTab').style.display = tabName === 'pricing' ? 'block' : 'none';
+                if (tabName === 'orders') loadOrdersTable();
+                if (tabName === 'pricing') loadPricing();
+                if (tabName === 'dashboard') { loadStats(); initCharts(); }
+            });
+        });
+        
+        document.getElementById('showAddBtn').addEventListener('click', () => { document.getElementById('productId').value = ''; document.getElementById('productForm').style.display = 'block'; });
+        document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
+        
+        loadStats(); loadProductsTable();
+        window.editProduct = editProduct; window.deleteProduct = deleteProduct; window.updateOrderStatus = updateOrderStatus;
+    </script>
+</body>
+</html>
