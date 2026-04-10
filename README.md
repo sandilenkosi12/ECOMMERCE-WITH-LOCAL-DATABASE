@@ -165,3 +165,47 @@ Login with admin@tradevault.com / admin123
 2. Add products to cart
 3. Proceed to checkout
 4. Complete payment (demo)
+
+
+---
+
+## 📋 Quick Reference Card
+
+```markdown
+# TradeVault Quick Reference
+
+## 🔐 Demo Login
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@tradevault.com | admin123 |
+| Supplier | supplier@tradevault.com | supplier123 |
+| Buyer | buyer@tradevault.com | buyer123 |
+
+## 🗂️ Files
+- `index.html` - Main marketplace
+- `admin.html` - Admin dashboard  
+- `supplier.html` - Supplier dashboard
+- `product.html` - Product details
+- `checkout.html` - Checkout
+
+## 📊 Charts Available
+- Revenue Trend (Line)
+- Sales by Category (Pie)
+- Top Products (Bar)
+- Order Status (Doughnut)
+- Weekly Orders (Bar)
+- Avg Order Value (Line)
+- User Growth (Bar)
+- Top Suppliers (Bar)
+
+## 🎨 Brand Colors
+- Amber: `#FFB81C`
+- Navy: `#1a1a2e`
+- Red: `#E03C31`
+- Green: `#10b981`
+
+## 🚀 Quick Start
+```bash
+
+# Open
+open index.html
