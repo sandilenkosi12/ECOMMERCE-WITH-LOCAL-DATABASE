@@ -107,3 +107,61 @@ Role	Email	Password
 Admin	admin@tradevault.com	admin123
 Supplier	supplier@tradevault.com	supplier123
 Buyer	buyer@tradevault.com	buyer123
+
+Buyer Flow
+Browse products on homepage
+
+Filter by category or MOQ
+
+Click product to view details
+
+Add to cart (quantity selection)
+
+Proceed to checkout
+
+Enter payment details
+
+Place order
+
+Track order status
+
+Supplier Flow
+Login to supplier dashboard
+
+View analytics and charts
+
+Manage products (add/edit/delete)
+
+View incoming orders with buyer details
+
+Update order status (Processing → Shipped → Delivered)
+
+Track earnings and commissions
+
+Admin Flow
+Login to admin dashboard
+
+View platform analytics
+
+Manage all users
+
+Manage all products
+
+Monitor all orders
+
+Delete inappropriate content
+
+# Test admin access
+Login with admin@tradevault.com / admin123
+
+# Test supplier flow
+1. Login as supplier@tradevault.com
+2. Add a product
+3. Login as buyer and purchase it
+4. Check supplier dashboard for order
+
+# Test checkout
+1. Login as buyer
+2. Add products to cart
+3. Proceed to checkout
+4. Complete payment (demo)
